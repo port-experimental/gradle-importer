@@ -1,0 +1,42 @@
+# Pipeline for Gradle Ingestion from ADO repositories to Port
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  - group: port-credentials
+  - group: ado-credentials
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '18.x'
+  displayName: 'Install Node.js'
+
+- script: |
+    yarn --version
+    yarn install
+  displayName: 'Install dependencies'
+
+- script: |
+    npx tsc
+  displayName: 'Transpile TypeScript'
+
+- script: |
+    export ADO_ORG=$(ADO_ORG)
+    export ADO_PAT=$(ADO_PAT)
+    export PORT_CLIENT_ID=$(PORT_CLIENT_ID)
+    export PORT_CLIENT_SECRET=$(PORT_CLIENT_SECRET)
+    export PORT_BLUEPRINT=$(PORT_BLUEPRINT)
+    
+    node dist/index.js
+  displayName: 'Run Gradle Ingestion'
+  env:
+    ADO_ORG: $(ADO_ORG)
+    ADO_PAT: $(ADO_PAT)
+    PORT_CLIENT_ID: $(PORT_CLIENT_ID)
+    PORT_CLIENT_SECRET: $(PORT_CLIENT_SECRET)
+    PORT_BLUEPRINT: $(PORT_BLUEPRINT)

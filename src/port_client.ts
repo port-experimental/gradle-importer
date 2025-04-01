@@ -88,22 +88,22 @@ export async function getClient() {
     return ApiClient.getClient();
 }
 
-export async function deleteAllEntities(entityType) {
+export async function deleteAllEntities(entityType: string) {
     const client = await ApiClient.getClient();
     return client.delete(`/blueprints/${entityType}/all-entities`);
     
 }
-export async function getEntities(entityType) {
+export async function getEntities(entityType: string) {
     const client = await ApiClient.getClient();
     return client.get(`/blueprints/${entityType}/entities`);
 }
 
-export async function getEntity(entityType, identifier) {
+export async function getEntity(entityType: string, identifier: string  ) {
     const client = await ApiClient.getClient();
     return client.get(`/blueprints/${entityType}/entities/${identifier}`);
 }
 
-export async function upsertEntity(entity, identifier, properties, relations) {
+export async function upsertEntity(entity: string, identifier: string, properties: any, relations: any) {
     const client = await ApiClient.getClient();
     return client.post(`/blueprints/${entity}/entities?upsert=true&merge=true`, {
         identifier,

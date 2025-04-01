@@ -84,7 +84,7 @@ async function main() {
                         );
                         
                         console.log(`Successfully updated entity in Port for ${repo.name} (${file.type})`);
-                    } catch (error) {
+                    } catch (error: any) {
                         // It's okay if the file doesn't exist in this repo
                         if (error.response && error.response.status === 404) {
                             console.log(`${file.path} not found in ${repo.name}, skipping...`);
@@ -97,7 +97,7 @@ async function main() {
         }
         
         console.log('All repositories processed successfully');
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error:', error.message);
         process.exit(1);
     }
