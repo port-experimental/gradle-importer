@@ -70,13 +70,11 @@ async function main() {
                         
                         // Create a unique identifier for the Port entity
                         const identifier = `${project.name}/${repo.name}`;
-                        const title = `${repo.name}`;
                         
                         // Update the entity in Port
                         await upsertEntity(
                             portBlueprint,
                             identifier,
-                            title,
                             {
                                 plugins: plugins,
                             },
