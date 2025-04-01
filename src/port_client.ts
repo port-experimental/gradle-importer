@@ -103,10 +103,11 @@ export async function getEntity(entityType, identifier) {
     return client.get(`/blueprints/${entityType}/entities/${identifier}`);
 }
 
-export async function upsertEntity(entity, identifier, properties, relations) {
+export async function upsertEntity(entity, identifier, title, properties, relations) {
     const client = await ApiClient.getClient();
     return client.post(`/blueprints/${entity}/entities?upsert=true&merge=true`, {
         identifier,
+        title,
         properties,
         relations,
     });
