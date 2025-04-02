@@ -129,6 +129,13 @@ async function main() {
                 const identifier = `${project.name}/${repo.name}`;
 
                 // Update the entity in Port
+                console.log(`Updating entity in Port for blueprint ${portBlueprint} and identifier ${identifier}`,
+                    {
+                        plugins: plugins,
+                        dependencies: dependencies,
+                        gradle_version: gradleVersion,
+                        gradle_distribution_url: gradleDistributionUrl,
+                    });
                 await upsertEntity(
                     portBlueprint,
                     identifier,
