@@ -73,10 +73,6 @@ async function main() {
                         plugins = parseGradlePlugins(gradleFileContent);
                         dependencies = parseGradleDependencies(gradleFileContent, variables);
 
-                        console.log(`Parsed variables from ${file.path} in ${repo.name}:`, variables);
-                        console.log(`Parsed plugins from ${file.path} in ${repo.name}:`, plugins);
-                        console.log(`Parsed dependencies from ${file.path} in ${repo.name}:`, dependencies);
-
                     } catch (error: any) {
                         // It's okay if the file doesn't exist in this repo
                         if (error.response && error.response.status === 404) {
@@ -127,34 +123,36 @@ async function main() {
 
                 // Create a unique identifier for the Port entity
                 const identifier = `${project.name}/${repo.name}`.replace(/\s+/g, '');
-
-                // Update the entity in Port
-                console.log(`Updating entity in Port for blueprint ${portBlueprint} and identifier ${identifier}`,
-                    {
+                try {
+                    // Update the entity in Port
+                    console.log(`Updating entity in Port for blueprint ${portBlueprint} and identifier ${identifier}`, {
                         plugins: plugins,
                         dependencies: dependencies,
                         gradle_version: gradleVersion,
                         gradle_distribution_url: gradleDistributionUrl,
                     });
-                await upsertEntity(
-                    portBlueprint,
-                    identifier,
-                    {
-                        plugins: plugins,
-                        dependencies: dependencies,
-                        gradle_version: gradleVersion,
-                        gradle_distribution_url: gradleDistributionUrl,
-                    },
-                    {
-                        // You can add relations here if needed
-                    }
-                );
+                    await upsertEntity(
+                        portBlueprint,
+                        identifier,
+                        {
+                            plugins: plugins,
+                            dependencies: dependencies,
+                            gradle_version: gradleVersion,
+                            gradle_distribution_url: gradleDistributionUrl,
+                        },
+                        {
+                            // You can add relations here if needed
+                        }
+                    );
 
-                console.log(`Successfully updated entity in Port for ${repo.name}`);
+                    console.log(`Successfully updated entity in Port for ${identifier}`);
+                } catch (error: any) {
+                    console.error(`Error updating entity in Port for ${identifier}:`, error.message);
+                }
             }
-        }
 
-        console.log('All repositories processed successfully');
+            console.log('All repositories processed successfully');
+        }
     } catch (error: any) {
         console.error('Error:', error.message);
         process.exit(1);
@@ -216,9 +214,9 @@ function parseGradleVariables(content: string): Record<string, string> {
 }
 
 /**
- * Parses Gradle files to extract information about implementation dependencies.
- * This module provides utility functions to analyze both Groovy and Kotlin-style Gradle build files.
- */
+* Parses Gradle files to extract information about implementation dependencies.
+* This module provides utility functions to analyze both Groovy and Kotlin-style Gradle build files.
+*/
 
 function parseGradleDependencies(content: string, variables: Record<string, string>): Record<string, string> {
     const dependencyRegex = /dependencies\s*{([^}]*)}/s;
