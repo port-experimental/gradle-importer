@@ -126,7 +126,7 @@ async function main() {
                 }
 
                 // Create a unique identifier for the Port entity
-                const identifier = `${project.name}/${repo.name}`;
+                const identifier = `${project.name}/${repo.name}`.replace(/\s+/g, '');
 
                 // Update the entity in Port
                 console.log(`Updating entity in Port for blueprint ${portBlueprint} and identifier ${identifier}`,
