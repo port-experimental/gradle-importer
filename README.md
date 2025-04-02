@@ -15,6 +15,18 @@ You will need to add a new JSON property named `plugins` to your repository blue
     "plugins": {
       "type": "object",
       "title": "Plugins"
+    },
+    "gradle_distribution_url": {
+      "type": "string",
+      "title": "Gradle Distribution URL"
+    },
+    "gradle_version": {
+      "type": "string",
+      "title": "Gradle Version"
+    },
+    "dependencies": {
+      "type": "object",
+      "title": "Dependencies"
     }
     ...
   }
