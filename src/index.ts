@@ -1,9 +1,10 @@
 import { upsertEntity } from './port_client';
 import axios from 'axios';
 import * as base64 from 'base-64';
-
+import { configureLogging } from './logging';
 async function main() {
     try {
+        configureLogging();
         // Azure DevOps configuration
         const adoOrg = process.env.ADO_ORG;
         const adoPat = process.env.ADO_PAT;
@@ -25,13 +26,13 @@ async function main() {
             },
         });
 
-        console.log(`Fetching projects from ADO org: ${adoOrg}`);
+        console.debug(`Fetching projects from ADO org: ${adoOrg}`);
 
         // Get all projects
         const projectsResponse = await adoApi.get('/_apis/projects?api-version=7.0');
         const projects = projectsResponse.data.value;
 
-        console.log(`Found ${projects.length} projects`);
+        console.debug(`Found ${projects.length} projects`);
 
         // Process each project
         for (const project of projects) {
@@ -41,7 +42,7 @@ async function main() {
             const reposResponse = await adoApi.get(`/${project.name}/_apis/git/repositories?api-version=7.0`);
             const repositories = reposResponse.data.value;
 
-            console.log(`Found ${repositories.length} repositories in project ${project.name}`);
+            console.debug(`Found ${repositories.length} repositories in project ${project.name}`);
 
             // Process each repository
             for (const repo of repositories) {
@@ -66,7 +67,7 @@ async function main() {
                         );
 
                         const gradleFileContent = fileResponse.data.content;
-                        console.log(`Found ${file.path} in ${repo.name}`);
+                        console.debug(`Found ${file.path} in ${repo.name}`);
 
                         // Parse the gradle file content
                         variables = parseGradleVariables(gradleFileContent);
@@ -76,7 +77,7 @@ async function main() {
                     } catch (error: any) {
                         // It's okay if the file doesn't exist in this repo
                         if (error.response && error.response.status === 404) {
-                            console.log(`${file.path} not found in ${repo.name}, skipping...`);
+                            console.debug(`${file.path} not found in ${repo.name}, skipping...`);
                         } else {
                             console.error(`Error processing ${file.path} in ${repo.name}:`, error.message);
                         }
@@ -101,20 +102,20 @@ async function main() {
 
                         if (distributionUrlMatch && distributionUrlMatch[1]) {
                             gradleDistributionUrl = distributionUrlMatch[1].replace(/\\:/g, ':');
-                            console.log(`Gradle distribution URL: ${gradleDistributionUrl}`);
+                            console.debug(`Gradle distribution URL: ${gradleDistributionUrl}`);
 
                             // Extract the Gradle version from the URL
                             const gradleVersionRegex = /gradle-([0-9.]+)/;
                             const gradleVersionMatch = gradleDistributionUrl?.match(gradleVersionRegex);
 
                             if (gradleVersionMatch && gradleVersionMatch[1]) {
-                                console.log(`Gradle version: ${gradleVersionMatch[1]}`);
+                                console.debug(`Gradle version: ${gradleVersionMatch[1]}`);
                                 gradleVersion = gradleVersionMatch[1];
                             }
                         }
                     } catch (error: any) {
                         if (error.response && error.response.status === 404) {
-                            console.log(`${file} not found in ${repo.name}, skipping...`);
+                            console.debug(`${file} not found in ${repo.name}, skipping...`);
                         } else {
                             console.error(`Error processing ${file} in ${repo.name}:`, error.message);
                         }
@@ -125,7 +126,7 @@ async function main() {
                 const identifier = `${project.name}/${repo.name}`.replace(/\s+/g, '');
                 try {
                     // Update the entity in Port
-                    console.log(`Updating entity in Port for blueprint ${portBlueprint} and identifier ${identifier}`, {
+                    console.debug(`Updating entity in Port for blueprint ${portBlueprint} and identifier ${identifier}`, {
                         plugins: plugins,
                         dependencies: dependencies,
                         gradle_version: gradleVersion,
@@ -237,7 +238,7 @@ function parseGradleDependencies(content: string, variables: Record<string, stri
         dependencyStatements.push(dependencyName);
     }
 
-    console.log(`Found ${dependencyStatements.length} dependency statements:`, dependencyStatements);
+    console.debug(`Found ${dependencyStatements.length} dependency statements:`, dependencyStatements);
     return Object.fromEntries(dependencyStatements.map(dependency => {
         // Split by the rightmost colon to separate the version from the rest
         // Example: "org.apache.commons:commons-lang3:$commonsLangVersion"
