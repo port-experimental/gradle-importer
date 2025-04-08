@@ -2,6 +2,7 @@ import { upsertEntity } from './port_client';
 import axios from 'axios';
 import * as base64 from 'base-64';
 import { configureLogging } from './logging';
+
 async function main() {
     try {
         configureLogging();
@@ -201,7 +202,7 @@ function parseGradlePlugins(content: string): Record<string, string> {
 function parseGradleVariables(content: string): Record<string, string> {
     const variables: Record<string, string> = {};
     // Match both Groovy (def) and Kotlin (val) variable declarations
-    const variableRegex = /(?:def|val)\s+(\w+)\s*=\s*['"]([^'"]*)['"]/g;
+    const variableRegex = /(?:(?:def|val)\s+)?(\w+)\s*=\s*['"]([^'"]*)['"]/g;
 
     let match;
 
@@ -220,7 +221,8 @@ function parseGradleVariables(content: string): Record<string, string> {
 */
 
 function parseGradleDependencies(content: string, variables: Record<string, string>): Record<string, string> {
-    const dependencyRegex = /dependencies\s*{([^}]*)}/s;
+    // This regex uses a non-greedy match and balances curly braces to properly extract the dependencies block
+    const dependencyRegex = /dependencies\s*\{((?:[^{}]|(?:\$\{[^}]*\})|(?:\{(?:[^{}]|(?:\$\{[^}]*\}))*\}))*)\}/s;
 
     let match = content.match(dependencyRegex);
 
@@ -248,8 +250,12 @@ function parseGradleDependencies(content: string, variables: Record<string, stri
 
         if (versionPart) {
             // Remove $ and {} characters from versionPart if they exist
-            const cleanVersionPart = versionPart.replace(/^\$/, '').replace(/^\{(.*)\}$/, '$1');
-            return [dependencyWithoutVersion, variables[cleanVersionPart]];
+            if (versionPart.startsWith('$')) {
+                const cleanVersionPart = versionPart.replace(/^\$/, '').replace(/^\{(.*)\}$/, '$1');
+                return [dependencyWithoutVersion, variables[cleanVersionPart]];
+            } else {
+                return [dependencyWithoutVersion, versionPart];
+            }
         }
         return [dependencyWithoutVersion, 'version unknown'];
     }))
